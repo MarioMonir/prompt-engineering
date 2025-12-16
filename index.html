@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prompt Library</title>
+    <meta name="description" content="Save, view, and delete your prompts locally." />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container topbar__inner">
+        <div class="brand">
+          <div class="brand__mark" aria-hidden="true">PL</div>
+          <div class="brand__text">
+            <div class="brand__title">Prompt Library</div>
+            <div class="brand__subtitle">Save prompts to your browser</div>
+          </div>
+        </div>
+
+        <div class="topbar__actions">
+          <button id="btnTheme" class="btn btn--secondary btn--theme" type="button" title="Toggle theme">
+            <span class="themeDot" aria-hidden="true"></span>
+            <span id="themeLabel">Theme</span>
+          </button>
+          <button id="btnExport" class="btn btn--secondary" type="button" title="Export your prompts as a JSON file">
+            Export
+          </button>
+          <label class="btn btn--secondary btn--file" title="Import prompts from a JSON file">
+            <input id="fileImport" type="file" accept="application/json" />
+            Import
+          </label>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="card">
+        <div class="card__header">
+          <h1 class="h1">Add a prompt</h1>
+          <p class="muted">Enter a title and the prompt content. It will be stored in LocalStorage on this device.</p>
+        </div>
+
+        <form id="promptForm" class="form" autocomplete="off">
+          <div class="field">
+            <label class="label" for="title">Title</label>
+            <input
+              id="title"
+              name="title"
+              class="input"
+              type="text"
+              placeholder="e.g., Meeting summary assistant"
+              maxlength="80"
+              required
+            />
+            <div class="hint"><span id="titleCount">0</span>/80</div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="content">Content</label>
+            <textarea
+              id="content"
+              name="content"
+              class="textarea"
+              placeholder="Write your prompt here…"
+              rows="6"
+              maxlength="8000"
+              required
+            ></textarea>
+            <div class="hint"><span id="contentCount">0</span>/8000</div>
+          </div>
+
+          <div class="form__row">
+            <button class="btn btn--primary" type="submit">Save prompt</button>
+            <button id="btnClear" class="btn btn--ghost" type="button">Clear</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="card">
+        <div class="card__header card__header--split">
+          <div>
+            <h2 class="h2">Saved prompts</h2>
+            <p class="muted"><span id="promptCount">0</span> total</p>
+          </div>
+
+          <div class="controls">
+            <div class="field field--inline">
+              <label class="label label--sr" for="search">Search</label>
+              <input id="search" class="input input--sm" type="search" placeholder="Search…" />
+            </div>
+            <select id="sort" class="select select--sm" aria-label="Sort prompts">
+              <option value="updatedDesc">Recently updated</option>
+              <option value="createdDesc">Recently created</option>
+              <option value="titleAsc">Title (A–Z)</option>
+              <option value="titleDesc">Title (Z–A)</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="emptyState" class="empty" hidden>
+          <div class="empty__title">No prompts yet</div>
+          <div class="empty__text">Save your first prompt above and it will appear here.</div>
+        </div>
+
+        <ul id="promptList" class="list" aria-label="Saved prompts"></ul>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+
+    <template id="promptItemTemplate">
+      <li class="item">
+        <div class="item__main">
+          <div class="item__titleRow">
+            <div class="item__title"></div>
+            <div class="item__meta"></div>
+          </div>
+          <pre class="item__content"></pre>
+        </div>
+        <div class="item__actions">
+          <button class="btn btn--secondary btn--sm item__copy" type="button">Copy</button>
+          <button class="btn btn--danger btn--sm item__delete" type="button">Delete</button>
+        </div>
+      </li>
+    </template>
+
+    <script src="./script.js"></script>
+  </body>
+</html>
+
