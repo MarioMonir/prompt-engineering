@@ -101,3 +101,13 @@ LLMs learn patterns, relationships, and knowledge from their training data, allo
  - The simplest form of prompting " just ask "
  - The foundation that everything else builds on 
  - Quality of question directly relates to the quality of answer
+
+ 
+ ## Zero shot Prompt 
+ - Direct task request without any examples 
+ - Model relies entirely on pre-training knowledge
+ - Works well for common tasks
+ - Quality Varies based on task complexity 
+
+ ## One Shot Prompt 
+ - 
