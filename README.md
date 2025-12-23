@@ -110,4 +110,7 @@ LLMs learn patterns, relationships, and knowledge from their training data, allo
  - Quality Varies based on task complexity 
 
  ## One Shot Prompt 
- - 
+ - Provide exactly one example with your request
+ - Model learns the pattern, format, and the style from the example 
+- Useful for establishing the format 
+- Show don't tell

@@ -1,0 +1,100 @@
+import { STORAGE_KEY, sharedState } from "./state.js";
+
+/**
+ * Returns the current timestamp in milliseconds since Unix epoch
+ * @returns {number} Current timestamp
+ */
+export function now() {
+  return Date.now();
+}
+
+/**
+ * Generates a unique ID for prompts using timestamp and random string
+ * @returns {string} Unique identifier starting with 'p_'
+ */
+export function uid() {
+  return `p_${Date.now().toString(36)}_${Math.random()
+    .toString(36)
+    .slice(2, 9)}`;
+}
+
+/**
+ * Safely trims whitespace from a value, handling null/undefined
+ * @param {*} s - Value to trim
+ * @returns {string} Trimmed string, empty string if null/undefined
+ */
+export function safeTrim(s) {
+  return (s ?? "").toString().trim();
+}
+
+/**
+ * Loads prompts from localStorage and validates/normalizes the data
+ * @returns {Array} Array of validated prompt objects
+ */
+export function loadFromStorage() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter(Boolean)
+      .map((p) => ({
+        id: String(p.id ?? uid()),
+        title: String(p.title ?? "").slice(0, 80),
+        content: String(p.content ?? "").slice(0, 8000),
+        createdAt: Number(p.createdAt ?? now()),
+        updatedAt: Number(p.updatedAt ?? p.createdAt ?? now()),
+      }))
+      .filter((p) => p.title && p.content);
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Saves the prompts array to localStorage
+ * @param {Array} list - Array of prompt objects to save
+ */
+export function saveToStorage(list) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+}
+
+/**
+ * Creates and adds a new prompt to the collection
+ * @param {string} title - Prompt title
+ * @param {string} content - Prompt content
+ * @returns {Object} Result object with {ok: boolean, error?: string, prompt?: Object}
+ */
+export function addPrompt(title, content) {
+  const t = safeTrim(title);
+  const c = safeTrim(content);
+  if (!t || !c)
+    return { ok: false, error: "Please enter both a title and content." };
+
+  const p = {
+    id: uid(),
+    title: t.slice(0, 80),
+    content: c.slice(0, 8000),
+    createdAt: now(),
+    updatedAt: now(),
+  };
+  const newPrompts = [p, ...sharedState.prompts];
+  sharedState.prompts = newPrompts;
+  saveToStorage(newPrompts);
+  return { ok: true, prompt: p };
+}
+
+/**
+ * Removes a prompt from the collection by ID
+ * @param {string} id - Prompt ID to delete
+ * @returns {boolean} True if prompt was found and deleted, false otherwise
+ */
+export function deletePrompt(id) {
+  const before = sharedState.prompts.length;
+  const newPrompts = sharedState.prompts.filter((p) => p.id !== id);
+  if (newPrompts.length === before) return false;
+  sharedState.prompts = newPrompts;
+  saveToStorage(newPrompts);
+  return true;
+}
