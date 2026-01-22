@@ -1,6 +1,6 @@
-import { sharedState, elements } from "./state.js";
+import { sharedState, elements } from "../shared/state.js";
 import { setCounts } from "./search.js";
-import { addPrompt, deletePrompt } from "./storage.js";
+import { addPrompt, deletePrompt, setPromptRating } from "./storage.js";
 import { render } from "./render.js";
 import { copyToClipboard } from "./clipboard.js";
 import {
@@ -53,6 +53,19 @@ export function wireEvents() {
   });
 
   elements.search.addEventListener("input", render);
+  const syncRatingFilterStyle = () => {
+    if (!elements.filterRating) return;
+    const v = String(elements.filterRating.value ?? "all");
+    elements.filterRating.classList.toggle("isChosen", v !== "all");
+  };
+
+  if (elements.filterRating) {
+    syncRatingFilterStyle();
+    elements.filterRating.addEventListener("change", () => {
+      syncRatingFilterStyle();
+      render();
+    });
+  }
   elements.sort.addEventListener("change", render);
 
   elements.list.addEventListener("click", async (e) => {
@@ -63,6 +76,18 @@ export function wireEvents() {
     const id = li.dataset.id;
     const p = sharedState.prompts.find((x) => x.id === id);
     if (!p) return;
+
+    if (btn.classList.contains("item__star")) {
+      const rating = Number(btn.dataset.rating ?? 0);
+      const ok = setPromptRating(id, rating);
+      if (ok) {
+        render();
+        const next =
+          sharedState.prompts.find((x) => x.id === id)?.rating ?? 0;
+        showToast(`Rated ${next}★`);
+      }
+      return;
+    }
 
     if (btn.classList.contains("item__delete")) {
       const ok = confirm(`Delete "${p.title}"? This cannot be undone.`);
@@ -79,6 +104,55 @@ export function wireEvents() {
       const ok = await copyToClipboard(p.content);
       showToast(ok ? "Copied to clipboard." : "Could not copy.");
     }
+  });
+
+  const clearPreview = (ratingEl) => {
+    if (!ratingEl) return;
+    for (const el of ratingEl.querySelectorAll(".item__star")) {
+      el.classList.remove("isHover");
+    }
+  };
+
+  const setPreview = (ratingEl, n) => {
+    if (!ratingEl) return;
+    const v = Math.max(0, Math.min(5, Math.trunc(Number(n))));
+    for (const el of ratingEl.querySelectorAll(".item__star")) {
+      const r = Math.trunc(Number(el.dataset.rating ?? 0));
+      el.classList.toggle("isHover", r > 0 && r <= v);
+    }
+  };
+
+  // Hover/focus preview for stars (purely visual)
+  elements.list.addEventListener("mouseover", (e) => {
+    const star = e.target.closest(".item__star");
+    if (!star) return;
+    const ratingEl = star.closest(".item__rating");
+    if (!ratingEl) return;
+    setPreview(ratingEl, star.dataset.rating);
+  });
+
+  elements.list.addEventListener("mouseout", (e) => {
+    const ratingEl = e.target.closest(".item__rating");
+    if (!ratingEl) return;
+    const next = e.relatedTarget;
+    if (next && ratingEl.contains(next)) return;
+    clearPreview(ratingEl);
+  });
+
+  elements.list.addEventListener("focusin", (e) => {
+    const star = e.target.closest(".item__star");
+    if (!star) return;
+    const ratingEl = star.closest(".item__rating");
+    if (!ratingEl) return;
+    setPreview(ratingEl, star.dataset.rating);
+  });
+
+  elements.list.addEventListener("focusout", (e) => {
+    const ratingEl = e.target.closest(".item__rating");
+    if (!ratingEl) return;
+    const next = e.relatedTarget;
+    if (next && ratingEl.contains(next)) return;
+    clearPreview(ratingEl);
   });
 
   elements.exportBtn.addEventListener("click", () => {

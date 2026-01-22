@@ -1,5 +1,6 @@
-import { sharedState } from "./state.js";
-import { saveToStorage, safeTrim, uid, now } from "./storage.js";
+import { sharedState } from "../shared/state.js";
+import { saveToStorage, safeTrim, uid, now, clampRating } from "./storage.js";
+import { documentRef, bodyRef } from "../shared/domDocument.js";
 
 /**
  * Exports all prompts to a downloadable JSON file
@@ -15,10 +16,10 @@ export function exportPrompts() {
     type: "application/json",
   });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
+  const a = documentRef.createElement("a");
   a.href = url;
   a.download = `prompt-library-${new Date().toISOString().slice(0, 10)}.json`;
-  document.body.appendChild(a);
+  bodyRef.appendChild(a);
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
@@ -43,6 +44,7 @@ export function normalizeImported(data) {
       content: safeTrim(p.content).slice(0, 8000),
       createdAt: Number(p.createdAt ?? now()),
       updatedAt: Number(p.updatedAt ?? p.createdAt ?? now()),
+      rating: clampRating(p.rating ?? 0),
     }))
     .filter((p) => p.title && p.content);
 

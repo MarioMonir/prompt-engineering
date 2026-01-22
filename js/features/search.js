@@ -1,4 +1,4 @@
-import { sharedState, elements } from "./state.js";
+import { sharedState, elements } from "../shared/state.js";
 import { safeTrim } from "./storage.js";
 
 /**
@@ -32,6 +32,12 @@ export function compare(a, b, mode) {
   switch (mode) {
     case "createdDesc":
       return b.createdAt - a.createdAt;
+    case "ratingDesc": {
+      const ar = Math.max(0, Math.min(5, Math.trunc(Number(a.rating ?? 0))));
+      const br = Math.max(0, Math.min(5, Math.trunc(Number(b.rating ?? 0))));
+      if (br !== ar) return br - ar;
+      return (b.updatedAt ?? 0) - (a.updatedAt ?? 0);
+    }
     case "titleAsc":
       return a.title.localeCompare(b.title);
     case "titleDesc":
@@ -49,8 +55,15 @@ export function compare(a, b, mode) {
 export function getVisiblePrompts() {
   const q = safeTrim(elements.search.value).toLowerCase();
   const mode = elements.sort.value;
+  const filterMode = String(elements.filterRating?.value ?? "all");
   return sharedState.prompts
     .filter((p) => matchesSearch(p, q))
+    .filter((p) => {
+      const r = Math.max(0, Math.min(5, Math.trunc(Number(p.rating ?? 0))));
+      if (filterMode === "all") return true;
+      const target = Math.max(1, Math.min(5, Math.trunc(Number(filterMode))));
+      return r === target;
+    })
     .slice()
     .sort((a, b) => compare(a, b, mode));
 }

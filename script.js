@@ -1,9 +1,13 @@
-import { sharedState } from "./js/state.js";
-import { getSystemTheme, getSavedTheme, applyTheme } from "./js/theme.js";
-import { loadFromStorage } from "./js/storage.js";
-import { setCounts } from "./js/search.js";
-import { render } from "./js/render.js";
-import { wireEvents } from "./js/events.js";
+import { sharedState } from "./js/shared/state.js";
+import {
+  getSystemTheme,
+  getSavedTheme,
+  applyTheme,
+} from "./js/features/theme.js";
+import { loadFromStorage } from "./js/features/storage.js";
+import { setCounts } from "./js/features/search.js";
+import { render } from "./js/features/render.js";
+import { wireEvents } from "./js/features/events.js";
 
 // Initialize the application
 function init() {

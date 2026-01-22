@@ -1,5 +1,6 @@
-import { sharedState, elements } from "./state.js";
+import { sharedState, elements } from "../shared/state.js";
 import { getVisiblePrompts } from "./search.js";
+import { documentRef } from "../shared/domDocument.js";
 
 /**
  * Formats a timestamp into a human-readable date/time string
@@ -33,7 +34,7 @@ export function render() {
 
   if (visible.length === 0) {
     if (sharedState.prompts.length === 0) return;
-    const li = document.createElement("li");
+    const li = documentRef.createElement("li");
     li.className = "empty";
     li.innerHTML = `
       <div class="empty__title">No matches</div>
@@ -51,6 +52,17 @@ export function render() {
       p.updatedAt
     )}`;
     node.querySelector(".item__content").textContent = p.content;
+
+    const rating = Math.max(0, Math.min(5, Math.trunc(Number(p.rating ?? 0))));
+    const stars = node.querySelectorAll(".item__star");
+    for (const el of stars) {
+      const n = Math.trunc(Number(el.dataset.rating ?? 0));
+      const filled = n > 0 && n <= rating;
+      const selected = n > 0 && n === rating;
+      el.classList.toggle("isFilled", filled);
+      el.setAttribute("aria-checked", selected ? "true" : "false");
+      el.title = `Rate ${n} star${n === 1 ? "" : "s"}`;
+    }
     elements.list.appendChild(node);
   }
 }

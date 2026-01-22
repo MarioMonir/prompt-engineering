@@ -1,4 +1,5 @@
-import { STORAGE_KEY, sharedState } from "./state.js";
+import { STORAGE_KEY, sharedState } from "../shared/state.js";
+import { windowRef } from "../shared/windowGlobals.js";
 
 /**
  * Returns the current timestamp in milliseconds since Unix epoch
@@ -6,6 +7,17 @@ import { STORAGE_KEY, sharedState } from "./state.js";
  */
 export function now() {
   return Date.now();
+}
+
+/**
+ * Normalizes a rating value into an integer between 0 and 5
+ * @param {*} n - Rating value (any type)
+ * @returns {number} Integer rating in range 0..5
+ */
+export function clampRating(n) {
+  const v = Math.trunc(Number(n));
+  if (!Number.isFinite(v)) return 0;
+  return Math.max(0, Math.min(5, v));
 }
 
 /**
@@ -33,7 +45,7 @@ export function safeTrim(s) {
  */
 export function loadFromStorage() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = windowRef.localStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
@@ -45,6 +57,7 @@ export function loadFromStorage() {
         content: String(p.content ?? "").slice(0, 8000),
         createdAt: Number(p.createdAt ?? now()),
         updatedAt: Number(p.updatedAt ?? p.createdAt ?? now()),
+        rating: clampRating(p.rating ?? 0),
       }))
       .filter((p) => p.title && p.content);
   } catch {
@@ -57,7 +70,7 @@ export function loadFromStorage() {
  * @param {Array} list - Array of prompt objects to save
  */
 export function saveToStorage(list) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  windowRef.localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
 }
 
 /**
@@ -78,11 +91,40 @@ export function addPrompt(title, content) {
     content: c.slice(0, 8000),
     createdAt: now(),
     updatedAt: now(),
+    rating: 0,
   };
   const newPrompts = [p, ...sharedState.prompts];
   sharedState.prompts = newPrompts;
   saveToStorage(newPrompts);
   return { ok: true, prompt: p };
+}
+
+/**
+ * Sets a prompt rating (0..5). If the same rating is clicked again, clears to 0.
+ * @param {string} id - Prompt ID
+ * @param {number} rating - New rating (0..5)
+ * @returns {boolean} True if prompt was found (and rating applied), else false
+ */
+export function setPromptRating(id, rating) {
+  const next = clampRating(rating);
+  const idx = sharedState.prompts.findIndex((p) => p.id === id);
+  if (idx === -1) return false;
+
+  const current = clampRating(sharedState.prompts[idx].rating ?? 0);
+  const value = next;
+  if (value === current) return true;
+
+  const updated = {
+    ...sharedState.prompts[idx],
+    rating: value,
+    updatedAt: now(),
+  };
+
+  const newPrompts = sharedState.prompts.slice();
+  newPrompts[idx] = updated;
+  sharedState.prompts = newPrompts;
+  saveToStorage(newPrompts);
+  return true;
 }
 
 /**

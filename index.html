@@ -89,9 +89,18 @@
               <label class="label label--sr" for="search">Search</label>
               <input id="search" class="input input--sm" type="search" placeholder="Search…" />
             </div>
+            <select id="filterRating" class="select select--sm" aria-label="Filter by exact rating">
+              <option value="all">All</option>
+              <option value="1">★</option>
+              <option value="2">★★</option>
+              <option value="3">★★★</option>
+              <option value="4">★★★★</option>
+              <option value="5">★★★★★</option>
+            </select>
             <select id="sort" class="select select--sm" aria-label="Sort prompts">
               <option value="updatedDesc">Recently updated</option>
               <option value="createdDesc">Recently created</option>
+              <option value="ratingDesc">Highest rated</option>
               <option value="titleAsc">Title (A–Z)</option>
               <option value="titleDesc">Title (Z–A)</option>
             </select>
@@ -114,7 +123,16 @@
         <div class="item__main">
           <div class="item__titleRow">
             <div class="item__title"></div>
+            <div class="item__right">
+              <div class="item__rating" role="radiogroup" aria-label="Rate prompt">
+                <button class="item__star" type="button" data-rating="1" role="radio" aria-checked="false" aria-label="1 star">★</button>
+                <button class="item__star" type="button" data-rating="2" role="radio" aria-checked="false" aria-label="2 stars">★</button>
+                <button class="item__star" type="button" data-rating="3" role="radio" aria-checked="false" aria-label="3 stars">★</button>
+                <button class="item__star" type="button" data-rating="4" role="radio" aria-checked="false" aria-label="4 stars">★</button>
+                <button class="item__star" type="button" data-rating="5" role="radio" aria-checked="false" aria-label="5 stars">★</button>
+              </div>
             <div class="item__meta"></div>
+            </div>
           </div>
           <pre class="item__content"></pre>
         </div>

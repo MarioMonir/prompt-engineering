@@ -1,14 +1,15 @@
-import { elements } from "./state.js";
+import { elements, THEME_KEY } from "../shared/state.js";
+import { documentRef } from "../shared/domDocument.js";
 import { safeTrim } from "./storage.js";
-import { THEME_KEY } from "./state.js";
+import { windowRef } from "../shared/windowGlobals.js";
 
 /**
  * Gets the system's preferred color scheme
  * @returns {string} "dark" or "light" based on system preference
  */
 export function getSystemTheme() {
-  return window.matchMedia &&
-    window.matchMedia("(prefers-color-scheme: dark)").matches
+  return windowRef.matchMedia &&
+    windowRef.matchMedia("(prefers-color-scheme: dark)").matches
     ? "dark"
     : "light";
 }
@@ -18,7 +19,7 @@ export function getSystemTheme() {
  * @returns {string|null} Saved theme ("dark", "light") or null if not set
  */
 export function getSavedTheme() {
-  const t = safeTrim(localStorage.getItem(THEME_KEY));
+  const t = safeTrim(windowRef.localStorage.getItem(THEME_KEY));
   return t === "dark" || t === "light" ? t : null;
 }
 
@@ -27,7 +28,7 @@ export function getSavedTheme() {
  * @param {string} theme - Theme to apply ("dark" or "light")
  */
 export function applyTheme(theme) {
-  document.documentElement.setAttribute("data-theme", theme);
+  documentRef.documentElement.setAttribute("data-theme", theme);
   if (elements.themeLabel)
     elements.themeLabel.textContent = theme === "dark" ? "Dark" : "Light";
 }
@@ -37,7 +38,7 @@ export function applyTheme(theme) {
  * @param {string} theme - Theme to save and apply ("dark" or "light")
  */
 export function setTheme(theme) {
-  localStorage.setItem(THEME_KEY, theme);
+  windowRef.localStorage.setItem(THEME_KEY, theme);
   applyTheme(theme);
 }
 
@@ -46,6 +47,6 @@ export function setTheme(theme) {
  */
 export function toggleTheme() {
   const current =
-    document.documentElement.getAttribute("data-theme") || getSystemTheme();
+    documentRef.documentElement.getAttribute("data-theme") || getSystemTheme();
   setTheme(current === "dark" ? "light" : "dark");
 }

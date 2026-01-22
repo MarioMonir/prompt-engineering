@@ -1,3 +1,6 @@
+import { documentRef, bodyRef } from "../shared/domDocument.js";
+import { navigatorRef } from "../shared/navigatorGlobals.js";
+
 /**
  * Copies text to the system clipboard using modern API with fallback
  * @param {string} text - Text to copy to clipboard
@@ -5,19 +8,19 @@
  */
 export async function copyToClipboard(text) {
   try {
-    await navigator.clipboard.writeText(text);
+    await navigatorRef.clipboard.writeText(text);
     return true;
   } catch {
     try {
-      const ta = document.createElement("textarea");
+      const ta = documentRef.createElement("textarea");
       ta.value = text;
       ta.style.position = "fixed";
       ta.style.left = "-9999px";
-      document.body.appendChild(ta);
+      bodyRef.appendChild(ta);
       ta.focus();
       ta.select();
-      const ok = document.execCommand("copy");
-      document.body.removeChild(ta);
+      const ok = documentRef.execCommand("copy");
+      bodyRef.removeChild(ta);
       return ok;
     } catch {
       return false;
